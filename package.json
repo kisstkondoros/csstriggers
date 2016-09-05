@@ -1,0 +1,40 @@
+{
+  "name": "csstriggers",
+  "displayName": "css-triggers",
+  "description": "Adds cost indicator to css properties in the form of inline decorations",
+  "version": "0.0.1",
+  "publisher": "kisstkondoros",
+  "author": "Tamas Kiss",
+  "icon": "logo.png",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kisstkondoros/csstriggers.git"
+  },
+  "engines": {
+    "vscode": "^1.4.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:css",
+    "onLanguage:sass",
+    "onLanguage:scss",
+    "onLanguage:less"
+  ],
+  "main": "./out/src/extension",
+  "scripts": {
+    "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
+    "compile": "node ./node_modules/vscode/bin/compile -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install"
+  },
+  "devDependencies": {
+    "typescript": "^1.8.5",
+    "vscode": "^0.11.17"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^2.4.2-next.13",
+    "vscode-languageserver": "^2.4.0-next.11"
+  }
+}
