@@ -11,7 +11,7 @@ import {Symbol, SymbolResponse, CssTriggerSymbolRequestType} from './common/prot
 
 export function activate(context: vscode.ExtensionContext) {
 
-    let serverModule = context.asAbsolutePath(path.join('out','src','server', 'server.js'));
+    let serverModule = context.asAbsolutePath(path.join('out', 'src', 'server', 'server.js'));
 
     let debugOptions = { execArgv: ["--nolazy", "--debug=6004"] };
 
@@ -48,7 +48,7 @@ export function activate(context: vscode.ExtensionContext) {
         return client.sendRequest(CssTriggerSymbolRequestType, uri);
     };
 
-    disposable = activateColorDecorations(triggerRequestor, { css: true, scss: true, less: true });
+    disposable = activateColorDecorations(triggerRequestor, context.asAbsolutePath, { css: true, scss: true, less: true });
     context.subscriptions.push(disposable);
 
 }

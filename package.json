@@ -23,6 +23,18 @@
     "onLanguage:scss",
     "onLanguage:less"
   ],
+  "contributes": {
+    "configuration": {
+      "title": "CSSTriggers",
+      "properties": {
+        "csstriggers.showDecoration": {
+          "default": true,
+          "description": "A flag which indicates whether to show cost indicator decorations",
+          "type": "boolean"
+        }
+      }
+    }
+  },
   "main": "./out/src/extension",
   "scripts": {
     "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
