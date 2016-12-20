@@ -11,7 +11,7 @@ import {Symbol, SymbolResponse} from './common/protocol';
 export function activateColorDecorations(decoratorProvider: (uri: string) => Thenable<SymbolResponse>, supportedLanguages: { [id: string]: boolean }): Disposable {
 
     let disposables: Disposable[] = [];
-
+    var hoveronly = window.createTextEditorDecorationType({});
     var composite = window.createTextEditorDecorationType({
         before: {
             contentText: '\u29BF',
@@ -84,6 +84,7 @@ export function activateColorDecorations(decoratorProvider: (uri: string) => The
 
     function updateDecorationForEditor(editor: TextEditor) {
         let document = editor.document;
+        let isDecorationEnabled = workspace.getConfiguration('csstriggers').get('showDecoration', true) == true;
         if (supportedLanguages[document.languageId]) {
             decoratorProvider(document.uri.toString()).then(symbolResponse => {
                 var mapper: (Symbol) => DecorationOptions = (symbol: Symbol) => {
@@ -94,9 +95,22 @@ export function activateColorDecorations(decoratorProvider: (uri: string) => The
                         hoverMessage: symbol.hoverMessage
                     };
                 };
-                editor.setDecorations(composite, symbolResponse.composite.map(mapper));
-                editor.setDecorations(compositeAndPaint, symbolResponse.paint.map(mapper));
-                editor.setDecorations(compositePaintAndLayout, symbolResponse.layout.map(mapper));
+
+                if (isDecorationEnabled) {
+                    editor.setDecorations(hoveronly, []);
+
+                    editor.setDecorations(composite, symbolResponse.composite.map(mapper));
+                    editor.setDecorations(compositeAndPaint, symbolResponse.paint.map(mapper));
+                    editor.setDecorations(compositePaintAndLayout, symbolResponse.layout.map(mapper));
+                } else {
+                    const allSymbols = [].concat(symbolResponse.composite).concat(symbolResponse.paint).concat(symbolResponse.layout)
+                    editor.setDecorations(hoveronly, allSymbols.map(mapper));
+
+                    editor.setDecorations(composite, []);
+                    editor.setDecorations(compositeAndPaint, []);
+                    editor.setDecorations(compositePaintAndLayout, []);
+                }
+
             });
         } else {
             editor.setDecorations(composite, []);
