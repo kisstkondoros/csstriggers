@@ -11,9 +11,9 @@ import {Symbol, SymbolResponse} from './common/protocol';
 export function activateColorDecorations(decoratorProvider: (uri: string) => Thenable<SymbolResponse>, asAbsolutePath: (relativePath: string) => string, supportedLanguages: { [id: string]: boolean }): Disposable {
 
     let disposables: Disposable[] = [];
-    const compositeImagePath = asAbsolutePath('images/composite.png');
-    const compositeAndPaintImagePath = asAbsolutePath('images/compositeAndPaint.png');
-    const compositePaintAndLayoutImagePath = asAbsolutePath('images/compositePaintAndLayout.png');
+    const compositeImagePath = asAbsolutePath('images/composite_668.png');
+    const compositeAndPaintImagePath = asAbsolutePath('images/compositeAndPaint_668.png');
+    const compositePaintAndLayoutImagePath = asAbsolutePath('images/compositePaintAndLayout_668.png');
     const compositeImagePathSmall = asAbsolutePath('images/composite_12.png');
     const compositeAndPaintImagePathSmall = asAbsolutePath('images/compositeAndPaint_12.png');
     const compositePaintAndLayoutImagePathSmall = asAbsolutePath('images/compositePaintAndLayout_12.png');
@@ -95,25 +95,28 @@ export function activateColorDecorations(decoratorProvider: (uri: string) => The
                     var range = Protocol2Code.asRange(symbol.range);
                     let color = document.getText(range);
                     let path: string;
+                    let explanation: string;
                     let titleAndCaption: string = type;
                     switch (type) {
                         case "composite": {
                             path = compositeImagePath;
+                            explanation = "The browser will do only compositing."
                             break;
                         }
                         case "paint": {
                             path = compositeAndPaintImagePath;
+                            explanation = "The browser skips layout, but it will still do paint."
                             break;
                         }
                         case "layout": {
                             path = compositePaintAndLayoutImagePath;
+                            explanation = "Any affected areas will need to be repainted, and the final painted elements will need to be composited back together."
                             break;
                         }
                     }
                     return <DecorationOptions>{
                         range: range,
-                        hoverMessage: 
-                        `![${titleAndCaption}](${path}|width=18,height=18 '${titleAndCaption}')&nbsp;&nbsp;` + symbol.hoverMessage
+                        hoverMessage: `![${titleAndCaption}](${path}|height=100 '${titleAndCaption}')  \r\n` + explanation
                     };
                 };
 
