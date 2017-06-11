@@ -7,21 +7,12 @@
 import * as https from 'https';
 
 import { InitializeResult, IPCMessageReader, IPCMessageWriter, IConnection, createConnection, Range, TextDocuments, TextDocument } from 'vscode-languageserver';
-import {cssTriggers} from './csstriggers';
+import {fetchCssTriggers} from './liveData';
 import {Symbol, SymbolResponse, CssTriggerSymbolRequestType} from '../common/protocol';
 
-cssTriggers.data["margin"] = cssTriggers.data["margin-left"];
-cssTriggers.data["padding"] = cssTriggers.data["padding-left"];
-cssTriggers.data["border"] = cssTriggers.data["border-left-width"];
-cssTriggers.data["border-radius"] = cssTriggers.data["border"];
-cssTriggers.data["border-color"] = cssTriggers.data["border-left-color"];
-cssTriggers.data["border-style"] = cssTriggers.data["border-left-style"];
-cssTriggers.data["border-width"] = cssTriggers.data["border-left-width"];
-cssTriggers.data["outline"] = cssTriggers.data["outline-width"];
-cssTriggers.data["overflow"] = cssTriggers.data["overflow-x"];
-cssTriggers.data["background"] = cssTriggers.data["background-color"];
-
 let connection: IConnection = createConnection(new IPCMessageReader(process), new IPCMessageWriter(process));
+
+let cssTriggersPromise = fetchCssTriggers();
 
 console.log = connection.console.log.bind(connection.console);
 console.error = connection.console.error.bind(connection.console);
@@ -38,12 +29,11 @@ connection.onInitialize((params): InitializeResult => {
 });
 
 connection.onRequest(CssTriggerSymbolRequestType, uri => {
-	console.log("Document requested" + uri);
 	let document = documents.get(uri);
-	return decorateCssProperties(document);
+	return cssTriggersPromise.then(triggers => decorateCssProperties(document, triggers));
 });
 
-function decorateCssProperties(document: TextDocument): SymbolResponse {
+function decorateCssProperties(document: TextDocument, cssTriggers: any): SymbolResponse {
 	var supportedExtensions = ["css", "less", "sass", "scss"];
 	var result = {
 		composite: [],
