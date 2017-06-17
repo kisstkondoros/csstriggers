@@ -19,22 +19,13 @@ export function activateColorDecorations(decoratorProvider: (uri: string) => The
     const compositePaintAndLayoutImagePathSmall = asAbsolutePath('images/compositePaintAndLayout_12.png');
     var hoveronly = window.createTextEditorDecorationType({});
     var composite = window.createTextEditorDecorationType({
-        before: {
-            contentIconPath: compositeImagePathSmall,
-            margin: "4px"
-        }
+        gutterIconPath: compositeImagePathSmall
     });
     var compositeAndPaint = window.createTextEditorDecorationType({
-        before: {
-            contentIconPath: compositeAndPaintImagePathSmall,
-            margin: "4px"
-        }
+        gutterIconPath: compositeAndPaintImagePathSmall
     });
     var compositePaintAndLayout = window.createTextEditorDecorationType({
-        before: {
-            contentIconPath: compositePaintAndLayoutImagePathSmall,
-            margin: "4px"
-        }
+        gutterIconPath: compositePaintAndLayoutImagePathSmall
     });
 
     disposables.push(composite);
