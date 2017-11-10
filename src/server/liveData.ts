@@ -1,5 +1,5 @@
 import * as https from "https";
-import {cssTriggers} from './csstriggers'
+import { cssTriggers } from './csstriggers'
 
 export function fetchCssTriggers(): Thenable<any> {
     return new Promise((resolve, reject) => {

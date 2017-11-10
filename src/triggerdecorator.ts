@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import {window, workspace, DecorationOptions, DecorationRenderOptions, Disposable, Range, TextDocument, TextEditor} from 'vscode';
-import {Protocol2Code} from 'vscode-languageclient';
-import {Symbol, SymbolResponse} from './common/protocol';
+import { window, workspace, DecorationOptions, DecorationRenderOptions, Disposable, Range, TextDocument, TextEditor } from 'vscode';
+import { Protocol2CodeConverter, LanguageClient } from 'vscode-languageclient';
+import { Symbol, SymbolResponse } from './common/protocol';
 
-export function activateColorDecorations(decoratorProvider: (uri: string) => Thenable<SymbolResponse>, asAbsolutePath: (relativePath: string) => string, supportedLanguages: { [id: string]: boolean }): Disposable {
+export function activateColorDecorations(decoratorProvider: (uri: string) => Thenable<SymbolResponse>, asAbsolutePath: (relativePath: string) => string, supportedLanguages: { [id: string]: boolean }, client: LanguageClient): Disposable {
 
     let disposables: Disposable[] = [];
     const compositeImagePath = asAbsolutePath('images/composite_668.png');
@@ -32,7 +32,7 @@ export function activateColorDecorations(decoratorProvider: (uri: string) => The
     disposables.push(compositeAndPaint);
     disposables.push(compositePaintAndLayout);
 
-    let pendingUpdateRequests: { [key: string]: number; } = {};
+    let pendingUpdateRequests: { [key: string]: NodeJS.Timer; } = {};
 
     // we care about all visible editors
     window.visibleTextEditors.forEach(editor => {
@@ -83,7 +83,7 @@ export function activateColorDecorations(decoratorProvider: (uri: string) => The
             decoratorProvider(document.uri.toString()).then(symbolResponse => {
                 type kind = "composite" | "paint" | "layout";
                 var mapper: (symbol: Symbol, type: kind) => DecorationOptions = (symbol: Symbol, type: kind) => {
-                    var range = Protocol2Code.asRange(symbol.range);
+                    var range = client.protocol2CodeConverter.asRange(symbol.range);
                     let color = document.getText(range);
                     let path: string;
                     let explanation: string;

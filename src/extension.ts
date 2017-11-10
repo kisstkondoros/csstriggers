@@ -6,14 +6,14 @@ import path = require('path');
 import { workspace, Disposable, ExtensionContext } from 'vscode';
 import { Message } from 'vscode-jsonrpc';
 import { LanguageClient, LanguageClientOptions, ErrorAction, CloseAction, SettingMonitor, ServerOptions, TransportKind } from 'vscode-languageclient';
-import {activateColorDecorations} from './triggerdecorator'
-import {Symbol, SymbolResponse, CssTriggerSymbolRequestType} from './common/protocol';
+import { activateColorDecorations } from './triggerdecorator'
+import { Symbol, SymbolResponse, CssTriggerSymbolRequestType } from './common/protocol';
 
 export function activate(context: vscode.ExtensionContext) {
 
     let serverModule = context.asAbsolutePath(path.join('out', 'src', 'server', 'server.js'));
 
-    let debugOptions = { execArgv: ["--nolazy", "--debug=6004"] };
+    let debugOptions = { execArgv: ["--nolazy", "--inspect=6004"] };
 
     let serverOptions: ServerOptions = {
         run: { module: serverModule, transport: TransportKind.ipc },
@@ -25,7 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
         return undefined;
     };
     let clientOptions: LanguageClientOptions = {
-        documentSelector: ["css", "less", "scss"],
+        documentSelector: ["css", "less", "scss", "sass", "stylable"],
         errorHandler: {
             error: error,
 
@@ -44,11 +44,14 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(disposable);
 
 
-    let triggerRequestor = (uri: string) => {
-        return client.sendRequest(CssTriggerSymbolRequestType, uri);
+    let triggerRequestor = (uri: string): Promise<SymbolResponse> => {
+        return client.onReady().then(() => client.sendRequest(CssTriggerSymbolRequestType, uri)) as Promise<SymbolResponse>;
     };
 
-    disposable = activateColorDecorations(triggerRequestor, context.asAbsolutePath, { css: true, scss: true, less: true });
+    disposable = activateColorDecorations(triggerRequestor, context.asAbsolutePath, { css: true, scss: true, less: true, stylable: true }, client);
+    vscode.window.onDidChangeActiveTextEditor((e) => {
+        console.error(e.document.languageId);
+    })
     context.subscriptions.push(disposable);
 
 }

@@ -7,8 +7,8 @@
 import * as https from 'https';
 
 import { InitializeResult, IPCMessageReader, IPCMessageWriter, IConnection, createConnection, Range, TextDocuments, TextDocument } from 'vscode-languageserver';
-import {fetchCssTriggers} from './liveData';
-import {Symbol, SymbolResponse, CssTriggerSymbolRequestType} from '../common/protocol';
+import { fetchCssTriggers } from './liveData';
+import { Symbol, SymbolResponse, CssTriggerSymbolRequestType } from '../common/protocol';
 
 let connection: IConnection = createConnection(new IPCMessageReader(process), new IPCMessageWriter(process));
 
@@ -34,7 +34,7 @@ connection.onRequest(CssTriggerSymbolRequestType, uri => {
 });
 
 function decorateCssProperties(document: TextDocument, cssTriggers: any): SymbolResponse {
-	var supportedExtensions = ["css", "less", "sass", "scss"];
+	var supportedLanguages = ["css", "less", "sass", "scss", "stylable"];
 	var result = {
 		composite: [],
 		layout: [],
@@ -42,7 +42,7 @@ function decorateCssProperties(document: TextDocument, cssTriggers: any): Symbol
 	};
 	var diagnostics: SymbolResponse[] = [];
 
-	if (!document || supportedExtensions.indexOf(document.languageId) == -1) {
+	if (!document || supportedLanguages.indexOf(document.languageId) == -1) {
 		return;
 	}
 
