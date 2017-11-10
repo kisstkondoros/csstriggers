@@ -25,7 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
         return undefined;
     };
     let clientOptions: LanguageClientOptions = {
-        documentSelector: ["css", "less", "scss", "sass", "stylable"],
+        documentSelector: ["css", "less", "scss", "sass", "stylable", "stylus"],
         errorHandler: {
             error: error,
 
@@ -48,7 +48,7 @@ export function activate(context: vscode.ExtensionContext) {
         return client.onReady().then(() => client.sendRequest(CssTriggerSymbolRequestType, uri)) as Promise<SymbolResponse>;
     };
 
-    disposable = activateColorDecorations(triggerRequestor, context.asAbsolutePath, { css: true, scss: true, less: true, stylable: true }, client);
+    disposable = activateColorDecorations(triggerRequestor, context.asAbsolutePath, { css: true, scss: true, less: true, stylable: true, stylus: true }, client);
     vscode.window.onDidChangeActiveTextEditor((e) => {
         console.error(e.document.languageId);
     })
