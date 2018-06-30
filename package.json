@@ -30,7 +30,8 @@
     "onLanguage:css",
     "onLanguage:sass",
     "onLanguage:scss",
-    "onLanguage:less"
+    "onLanguage:less",
+    "onLanguage:vue"
   ],
   "contributes": {
     "configuration": {

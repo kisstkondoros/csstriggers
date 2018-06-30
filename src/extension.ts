@@ -25,7 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
         return undefined;
     };
     let clientOptions: LanguageClientOptions = {
-        documentSelector: ["css", "less", "scss", "sass", "stylable", "stylus"],
+        documentSelector: ["css", "less", "scss", "sass", "vue", "stylable", "stylus"],
         errorHandler: {
             error: error,
 
@@ -53,12 +53,11 @@ export function activate(context: vscode.ExtensionContext) {
         sass: true,
         scss: true,
         less: true,
+        vue: true,
         stylable: true,
         stylus: true
     }, client);
-    vscode.window.onDidChangeActiveTextEditor((e) => {
-        console.error(e.document.languageId);
-    })
+
     context.subscriptions.push(disposable);
 
 }
