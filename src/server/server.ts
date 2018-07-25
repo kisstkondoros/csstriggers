@@ -45,6 +45,7 @@ function decorateCssProperties(document: TextDocument, cssTriggers: any): Symbol
 
 	var text = document.getText();
 	var match;
+	const whiteSpace = /\s/;
 	var regex = /([\-\w])*\s*:/g;
 	while (match = regex.exec(text)) {
 		var capturingGroup = match[0].substr(0, match[0].length - 1).trim();
@@ -53,6 +54,22 @@ function decorateCssProperties(document: TextDocument, cssTriggers: any): Symbol
 			var change = trigger.change.blink;
 			var index = match.index;
 			var start = document.positionAt(index);
+			var whitespaceTestIndex = index - 1;
+			var previousNonWhiteSpaceChar:string;
+
+			while(
+				whitespaceTestIndex > 0 &&
+				(
+					(previousNonWhiteSpaceChar = text.charAt(whitespaceTestIndex)) &&
+					whiteSpace.test(previousNonWhiteSpaceChar)
+				)) {
+				whitespaceTestIndex--;
+			}
+
+			if (previousNonWhiteSpaceChar == "$" ||
+				previousNonWhiteSpaceChar == "(") {
+				continue;
+			}
 			var end = document.positionAt(index + capturingGroup.length);
 			var hoverMessage = "Subsequent updates will cause: ";
 			var causes = [];
