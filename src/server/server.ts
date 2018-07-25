@@ -4,11 +4,9 @@
  * ------------------------------------------------------------------------------------------ */
 'use strict';
 
-import * as https from 'https';
-
 import { InitializeResult, IPCMessageReader, IPCMessageWriter, IConnection, createConnection, Range, TextDocuments, TextDocument } from 'vscode-languageserver';
 import { fetchCssTriggers } from './liveData';
-import { Symbol, SymbolResponse, CssTriggerSymbolRequestType } from '../common/protocol';
+import { SymbolResponse, CssTriggerSymbolRequestType } from '../common/protocol';
 
 let connection: IConnection = createConnection(new IPCMessageReader(process), new IPCMessageWriter(process));
 
@@ -20,7 +18,7 @@ console.error = connection.console.error.bind(connection.console);
 let documents: TextDocuments = new TextDocuments();
 documents.listen(connection);
 
-connection.onInitialize((params): InitializeResult => {
+connection.onInitialize((): InitializeResult => {
 	return {
 		capabilities: {
 			textDocumentSync: documents.syncKind,
@@ -40,7 +38,6 @@ function decorateCssProperties(document: TextDocument, cssTriggers: any): Symbol
 		layout: [],
 		paint: []
 	};
-	var diagnostics: SymbolResponse[] = [];
 
 	if (!document || supportedLanguages.indexOf(document.languageId) == -1) {
 		return;
