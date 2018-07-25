@@ -2,7 +2,7 @@
   "name": "csstriggers",
   "displayName": "css-triggers",
   "description": "Adds cost indicator to css properties in the form of inline decorations",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "publisher": "kisstkondoros",
   "author": "Tamas Kiss",
   "icon": "logo.png",
