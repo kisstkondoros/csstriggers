@@ -31,6 +31,7 @@
     "onLanguage:sass",
     "onLanguage:scss",
     "onLanguage:less",
+    "onLanguage:html",
     "onLanguage:vue"
   ],
   "contributes": {

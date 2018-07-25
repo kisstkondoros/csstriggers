@@ -32,7 +32,7 @@ connection.onRequest(CssTriggerSymbolRequestType, uri => {
 });
 
 function decorateCssProperties(document: TextDocument, cssTriggers: any): SymbolResponse {
-	var supportedLanguages = ["css", "less", "sass", "scss", "vue", "stylable", "stylus"];
+	var supportedLanguages = ["css", "less", "sass", "scss", "html", "vue", "stylable", "stylus"];
 	var result = {
 		composite: [],
 		layout: [],
