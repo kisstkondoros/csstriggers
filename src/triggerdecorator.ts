@@ -105,6 +105,12 @@ export function activateColorDecorations(decoratorProvider: (uri: string) => The
                             break;
                         }
                     }
+
+                    // The markdown path parser under windows escapes the `userhome\.vscode` folder as `userhome.vscode`
+                    if (process.platform === "win32") {
+                        path = path.replace('\\\.', '\\\\\.')
+                    };
+
                     return <DecorationOptions>{
                         range: range,
                         hoverMessage: `![${titleAndCaption}](${path}|height=100 '${titleAndCaption}')  \r\n` + explanation
