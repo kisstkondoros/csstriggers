@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16px" height="16px">
+    <path id="outline" d="M4 12 L8 12 L12 8 L8 4 L4 4 L8 8 Z" stroke="#020302"  stroke-width="2px" class="icon-outline"/>
+    <path id="canvas" d="M4 12 L8 12 L12 8 L8 4 L4 4 L8 8 Z" fill="#38ba41" class="icon-canvas"/>
+</svg>

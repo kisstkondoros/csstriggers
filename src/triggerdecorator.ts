@@ -11,12 +11,12 @@ import { Symbol, SymbolResponse } from './common/protocol';
 export function activateColorDecorations(decoratorProvider: (uri: string) => Thenable<SymbolResponse>, asAbsolutePath: (relativePath: string) => string, supportedLanguages: { [id: string]: boolean }, client: LanguageClient): Disposable {
 
     let disposables: Disposable[] = [];
-    const compositeImagePath = asAbsolutePath('images/composite_668.png');
-    const compositeAndPaintImagePath = asAbsolutePath('images/compositeAndPaint_668.png');
-    const compositePaintAndLayoutImagePath = asAbsolutePath('images/compositePaintAndLayout_668.png');
-    const compositeImagePathSmall = asAbsolutePath('images/composite_12.png');
-    const compositeAndPaintImagePathSmall = asAbsolutePath('images/compositeAndPaint_12.png');
-    const compositePaintAndLayoutImagePathSmall = asAbsolutePath('images/compositePaintAndLayout_12.png');
+    const compositeImagePath = asAbsolutePath('images/composite_wide.svg');
+    const compositeAndPaintImagePath = asAbsolutePath('images/composite_paint_wide.svg');
+    const compositePaintAndLayoutImagePath = asAbsolutePath('images/composite_paint_layout_wide.svg');
+    const compositeImagePathSmall = asAbsolutePath('images/composite.svg');
+    const compositeAndPaintImagePathSmall = asAbsolutePath('images/paint.svg');
+    const compositePaintAndLayoutImagePathSmall = asAbsolutePath('images/layout.svg');
     var hoveronly = window.createTextEditorDecorationType({});
     var composite = window.createTextEditorDecorationType({
         gutterIconPath: compositeImagePathSmall
@@ -91,23 +91,29 @@ export function activateColorDecorations(decoratorProvider: (uri: string) => The
                     switch (type) {
                         case "composite": {
                             path = compositeImagePath;
-                            explanation = "The browser will do only compositing."
+                            explanation = "Changes will result only in `compositing`.";
                             break;
                         }
                         case "paint": {
                             path = compositeAndPaintImagePath;
-                            explanation = "The browser skips layout, but it will still do paint."
+                            explanation = "The affected element will be `painted` and `composited`.";
                             break;
                         }
                         case "layout": {
                             path = compositePaintAndLayoutImagePath;
-                            explanation = "Any affected areas will need to be repainted, and the final painted elements will need to be composited back together."
+                            explanation = "Any affected areas will need to be `layouted`, and the final `painted` elements will need to be `composited` back together.";
                             break;
                         }
                     }
+
+                    // The markdown path parser under windows escapes the `userhome\.vscode` folder as `userhome.vscode`
+                    if (process.platform === "win32") {
+                        path = path.replace('\\\.', '\\\\\.')
+                    };
+
                     return <DecorationOptions>{
                         range: range,
-                        hoverMessage: `![${titleAndCaption}](${path}|height=100 '${titleAndCaption}')  \r\n` + explanation
+                        hoverMessage: `![${titleAndCaption}](${path}|height=16 '${titleAndCaption}')  \r\n` + explanation
                     };
                 };
 
