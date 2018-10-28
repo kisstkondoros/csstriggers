@@ -91,17 +91,17 @@ export function activateColorDecorations(decoratorProvider: (uri: string) => The
                     switch (type) {
                         case "composite": {
                             path = compositeImagePath;
-                            explanation = "The browser will do only compositing."
+                            explanation = "Changes will result only in `compositing`.";
                             break;
                         }
                         case "paint": {
                             path = compositeAndPaintImagePath;
-                            explanation = "The browser skips layout, but it will still do paint."
+                            explanation = "The affected element will be `painted` and `composited`.";
                             break;
                         }
                         case "layout": {
                             path = compositePaintAndLayoutImagePath;
-                            explanation = "Any affected areas will need to be repainted, and the final painted elements will need to be composited back together."
+                            explanation = "Any affected areas will need to be `layouted`, and the final `painted` elements will need to be `composited` back together.";
                             break;
                         }
                     }
