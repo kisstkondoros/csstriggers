@@ -55,7 +55,7 @@
   "devDependencies": {
     "@types/node": "^8.0.51",
     "typescript": "^2.3.2",
-    "vscode": "^1.1.5"
+    "vscode": "^1.1.22"
   },
   "dependencies": {
     "vscode-languageclient": "^3.5.0",
