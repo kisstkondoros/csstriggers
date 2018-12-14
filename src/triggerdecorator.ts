@@ -1,147 +1,207 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-'use strict';
+import {
+	window,
+	workspace,
+	DecorationOptions,
+	TextDocument,
+	TextEditor,
+	CancellationToken,
+	CancellationTokenSource,
+	ExtensionContext,
+	TextEditorDecorationType
+} from "vscode";
+import { LanguageClient } from "vscode-languageclient";
+import { Symbol, SymbolResponse } from "./common/protocol";
 
-import { window, workspace, DecorationOptions, DecorationRenderOptions, Disposable, Range, TextDocument, TextEditor } from 'vscode';
-import { Protocol2CodeConverter, LanguageClient } from 'vscode-languageclient';
-import { Symbol, SymbolResponse } from './common/protocol';
+interface PendingScan {
+	token: CancellationTokenSource;
+}
 
-export function activateColorDecorations(decoratorProvider: (uri: string) => Thenable<SymbolResponse>, asAbsolutePath: (relativePath: string) => string, supportedLanguages: { [id: string]: boolean }, client: LanguageClient): Disposable {
+export function activateColorDecorations(
+	decoratorProvider: (
+		document: TextDocument,
+		visibleLines: number[],
+		token: CancellationToken
+	) => Promise<SymbolResponse>,
+	asAbsolutePath: (relativePath: string) => string,
+	supportedLanguages: { [id: string]: boolean },
+	context: ExtensionContext,
+	client: LanguageClient
+) {
+	const compositeImagePath = asAbsolutePath("images/composite_wide.svg");
+	const compositeAndPaintImagePath = asAbsolutePath("images/composite_paint_wide.svg");
+	const compositePaintAndLayoutImagePath = asAbsolutePath("images/composite_paint_layout_wide.svg");
+	const compositeImagePathSmall = asAbsolutePath("images/composite.svg");
+	const compositeAndPaintImagePathSmall = asAbsolutePath("images/paint.svg");
+	const compositePaintAndLayoutImagePathSmall = asAbsolutePath("images/layout.svg");
+	var hoveronly = window.createTextEditorDecorationType({});
+	var composite = window.createTextEditorDecorationType({
+		gutterIconPath: compositeImagePathSmall
+	});
+	var compositeAndPaint = window.createTextEditorDecorationType({
+		gutterIconPath: compositeAndPaintImagePathSmall
+	});
+	var compositePaintAndLayout = window.createTextEditorDecorationType({
+		gutterIconPath: compositePaintAndLayoutImagePathSmall
+	});
 
-    let disposables: Disposable[] = [];
-    const compositeImagePath = asAbsolutePath('images/composite_wide.svg');
-    const compositeAndPaintImagePath = asAbsolutePath('images/composite_paint_wide.svg');
-    const compositePaintAndLayoutImagePath = asAbsolutePath('images/composite_paint_layout_wide.svg');
-    const compositeImagePathSmall = asAbsolutePath('images/composite.svg');
-    const compositeAndPaintImagePathSmall = asAbsolutePath('images/paint.svg');
-    const compositePaintAndLayoutImagePathSmall = asAbsolutePath('images/layout.svg');
-    var hoveronly = window.createTextEditorDecorationType({});
-    var composite = window.createTextEditorDecorationType({
-        gutterIconPath: compositeImagePathSmall
-    });
-    var compositeAndPaint = window.createTextEditorDecorationType({
-        gutterIconPath: compositeAndPaintImagePathSmall
-    });
-    var compositePaintAndLayout = window.createTextEditorDecorationType({
-        gutterIconPath: compositePaintAndLayoutImagePathSmall
-    });
+	context.subscriptions.push(composite);
+	context.subscriptions.push(compositeAndPaint);
+	context.subscriptions.push(compositePaintAndLayout);
 
-    disposables.push(composite);
-    disposables.push(compositeAndPaint);
-    disposables.push(compositePaintAndLayout);
+	context.subscriptions.push(
+		workspace.onDidChangeTextDocument(e => {
+			if (e) {
+				throttledScan(e.document);
+			}
+		})
+	);
+	context.subscriptions.push(
+		window.onDidChangeActiveTextEditor(e => {
+			if (e) {
+				throttledScan(e.document);
+			}
+		})
+	);
+	context.subscriptions.push(
+		workspace.onDidChangeWorkspaceFolders(() => {
+			refreshAllVisibleEditors();
+		})
+	);
+	context.subscriptions.push(
+		window.onDidChangeTextEditorVisibleRanges(event => {
+			if (event && event.textEditor && event.textEditor.document) {
+				const document = event.textEditor.document;
+				throttledScan(document, 50);
+			}
+		})
+	);
+	context.subscriptions.push(
+		workspace.onDidOpenTextDocument(e => {
+			if (e) {
+				throttledScan(e);
+			}
+		})
+	);
 
-    let pendingUpdateRequests: { [key: string]: NodeJS.Timer; } = {};
+	let pendingScans: { [uri: string]: PendingScan } = {};
 
-    // we care about all visible editors
-    window.visibleTextEditors.forEach(editor => {
-        if (editor.document) {
-            triggerUpdateDecorations(editor.document);
-        }
-    });
-    // to get visible one has to become active
-    window.onDidChangeActiveTextEditor(editor => {
-        if (editor) {
-            triggerUpdateDecorations(editor.document);
-        }
-    }, null, disposables);
+	let throttleIds = {};
+	let throttledScan = (document: TextDocument, timeout: number = 500) => {
+		if (document && document.uri) {
+			const lookupKey = document.uri.toString();
+			if (throttleIds[lookupKey]) clearTimeout(throttleIds[lookupKey]);
+			throttleIds[lookupKey] = setTimeout(() => {
+				scan(document);
+				delete throttleIds[lookupKey];
+			}, timeout);
+		}
+	};
 
-    workspace.onDidChangeTextDocument(event => triggerUpdateDecorations(event.document), null, disposables);
-    workspace.onDidOpenTextDocument(triggerUpdateDecorations, null, disposables);
-    workspace.onDidCloseTextDocument(triggerUpdateDecorations, null, disposables);
+	const refreshAllVisibleEditors = () => {
+		window.visibleTextEditors
+			.map(p => p.document)
+			.filter(p => p != null)
+			.forEach(doc => throttledScan(doc));
+	};
 
-    function triggerUpdateDecorations(document: TextDocument) {
-        let triggerUpdate = supportedLanguages[document.languageId];
-        let uri = document.uri.toString();
-        let timeout = pendingUpdateRequests[uri];
-        if (typeof timeout !== 'undefined') {
-            clearTimeout(timeout);
-            triggerUpdate = true; // force update, even if languageId is not supported (anymore)
-        }
-        if (triggerUpdate) {
-            pendingUpdateRequests[uri] = setTimeout(() => {
-                updateDecorations(uri);
-                delete pendingUpdateRequests[uri];
-            }, 500);
-        }
+	function getPendingScan(document: TextDocument): PendingScan {
+		const pendingScan = pendingScans[document.uri.toString()] || {
+			token: new CancellationTokenSource()
+		};
+		pendingScan[document.uri.toString()] = pendingScan;
+		return pendingScan;
+	}
+
+	function scan(document: TextDocument) {
+		if (supportedLanguages[document.languageId]) {
+			const editors = findEditorsForDocument(document);
+			if (editors.length > 0) {
+				const visibleLines = [];
+				for (const editor of editors) {
+					for (const range of editor.visibleRanges) {
+						let lineIndex = range.start.line;
+						while (lineIndex <= range.end.line) {
+							visibleLines.push(lineIndex);
+							lineIndex++;
+						}
+					}
+				}
+
+				let isDecorationEnabled = workspace.getConfiguration("csstriggers").get("showDecoration", true) == true;
+
+				const scanResult = getPendingScan(document);
+				scanResult.token.cancel();
+				scanResult.token = new CancellationTokenSource();
+				decoratorProvider(document, visibleLines, scanResult.token.token).then(symbolResponse => {
+					type kind = "composite" | "paint" | "layout";
+					var mapper: (symbol: Symbol, type: kind) => DecorationOptions = (symbol: Symbol, type: kind) => {
+						var range = client.protocol2CodeConverter.asRange(symbol.range);
+						let path: string;
+						let explanation: string;
+						let titleAndCaption: string = type;
+						switch (type) {
+							case "composite": {
+								path = compositeImagePath;
+								explanation = "Changes will result only in `compositing`.";
+								break;
+							}
+							case "paint": {
+								path = compositeAndPaintImagePath;
+								explanation = "The affected element will be `painted` and `composited`.";
+								break;
+							}
+							case "layout": {
+								path = compositePaintAndLayoutImagePath;
+								explanation =
+									"Any affected areas will need to be `layouted`, and the final `painted` elements will need to be `composited` back together.";
+								break;
+							}
+						}
+
+						// The markdown path parser under windows escapes the `userhome\.vscode` folder as `userhome.vscode`
+						if (process.platform === "win32") {
+							path = path.replace("\\.", "\\\\.");
+						}
+
+						return <DecorationOptions>{
+							range: range,
+							hoverMessage: `![${titleAndCaption}](${path}|height=16 '${titleAndCaption}')  \r\n` + explanation
+						};
+					};
+
+					if (isDecorationEnabled) {
+						setDecorationsForEditors(editors, hoveronly, []);
+
+						setDecorationsForEditors(editors, composite, symbolResponse.composite.map(s => mapper(s, "composite")));
+						setDecorationsForEditors(editors, compositeAndPaint, symbolResponse.paint.map(s => mapper(s, "paint")));
+						setDecorationsForEditors(editors, compositePaintAndLayout, symbolResponse.layout.map(s => mapper(s, "layout")));
+					} else {
+						let allSymbols = [];
+						allSymbols = allSymbols.concat(symbolResponse.composite.map(s => mapper(s, "composite")));
+						allSymbols = allSymbols.concat(symbolResponse.paint.map(s => mapper(s, "paint")));
+						allSymbols = allSymbols.concat(symbolResponse.layout.map(s => mapper(s, "layout")));
+						setDecorationsForEditors(editors, hoveronly, allSymbols);
+
+						setDecorationsForEditors(editors, composite, []);
+						setDecorationsForEditors(editors, compositeAndPaint, []);
+						setDecorationsForEditors(editors, compositePaintAndLayout, []);
+					}
+				});
+			} else {
+				setDecorationsForEditors(editors, composite, []);
+				setDecorationsForEditors(editors, compositeAndPaint, []);
+				setDecorationsForEditors(editors, compositePaintAndLayout, []);
+			}
+		}
     }
 
-    function updateDecorations(uri: string) {
-        window.visibleTextEditors.forEach(editor => {
-            let document = editor.document;
-            if (document && document.uri.toString() === uri) {
-                updateDecorationForEditor(editor);
-            }
-        });
-    }
+    refreshAllVisibleEditors();
+}
 
-    function updateDecorationForEditor(editor: TextEditor) {
-        let document = editor.document;
-        let isDecorationEnabled = workspace.getConfiguration('csstriggers').get('showDecoration', true) == true;
-        if (supportedLanguages[document.languageId]) {
-            decoratorProvider(document.uri.toString()).then(symbolResponse => {
-                type kind = "composite" | "paint" | "layout";
-                var mapper: (symbol: Symbol, type: kind) => DecorationOptions = (symbol: Symbol, type: kind) => {
-                    var range = client.protocol2CodeConverter.asRange(symbol.range);
-                    let color = document.getText(range);
-                    let path: string;
-                    let explanation: string;
-                    let titleAndCaption: string = type;
-                    switch (type) {
-                        case "composite": {
-                            path = compositeImagePath;
-                            explanation = "Changes will result only in `compositing`.";
-                            break;
-                        }
-                        case "paint": {
-                            path = compositeAndPaintImagePath;
-                            explanation = "The affected element will be `painted` and `composited`.";
-                            break;
-                        }
-                        case "layout": {
-                            path = compositePaintAndLayoutImagePath;
-                            explanation = "Any affected areas will need to be `layouted`, and the final `painted` elements will need to be `composited` back together.";
-                            break;
-                        }
-                    }
+function setDecorationsForEditors(editors: TextEditor[], type: TextEditorDecorationType, options: DecorationOptions[]) {
+	editors.forEach(editor => editor.setDecorations(type, options));
+}
 
-                    // The markdown path parser under windows escapes the `userhome\.vscode` folder as `userhome.vscode`
-                    if (process.platform === "win32") {
-                        path = path.replace('\\\.', '\\\\\.')
-                    };
-
-                    return <DecorationOptions>{
-                        range: range,
-                        hoverMessage: `![${titleAndCaption}](${path}|height=16 '${titleAndCaption}')  \r\n` + explanation
-                    };
-                };
-
-                if (isDecorationEnabled) {
-                    editor.setDecorations(hoveronly, []);
-
-                    editor.setDecorations(composite, symbolResponse.composite.map(s => mapper(s, "composite")));
-                    editor.setDecorations(compositeAndPaint, symbolResponse.paint.map(s => mapper(s, "paint")));
-                    editor.setDecorations(compositePaintAndLayout, symbolResponse.layout.map(s => mapper(s, "layout")));
-                } else {
-                    let allSymbols = [];
-                    allSymbols = allSymbols.concat(symbolResponse.composite.map(s => mapper(s, "composite")));
-                    allSymbols = allSymbols.concat(symbolResponse.paint.map(s => mapper(s, "paint")));
-                    allSymbols = allSymbols.concat(symbolResponse.layout.map(s => mapper(s, "layout")));
-                    editor.setDecorations(hoveronly, allSymbols);
-
-                    editor.setDecorations(composite, []);
-                    editor.setDecorations(compositeAndPaint, []);
-                    editor.setDecorations(compositePaintAndLayout, []);
-                }
-
-            });
-        } else {
-            editor.setDecorations(composite, []);
-            editor.setDecorations(compositeAndPaint, []);
-            editor.setDecorations(compositePaintAndLayout, []);
-        }
-    }
-
-    return Disposable.from(...disposables);
+function findEditorsForDocument(document: TextDocument) {
+	return window.visibleTextEditors.filter(p => p.document.uri === document.uri);
 }
