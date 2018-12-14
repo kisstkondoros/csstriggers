@@ -44,6 +44,10 @@ connection.onRequest(CssTriggerSymbolRequestType, request => {
 	return cssTriggersPromise.then(triggers => decorateCssProperties(document, request, triggers));
 });
 
+function camelCaseToDash(myStr) {
+	return myStr.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
+}
+
 function decorateCssProperties(document: TextDocument, request: SymbolRequest, cssTriggers: any): SymbolResponse {
 	var result = {
 		composite: [],
@@ -62,8 +66,8 @@ function decorateCssProperties(document: TextDocument, request: SymbolRequest, c
 		const whiteSpace = /\s/;
 		var regex = /([\-\w])*\s*:/g;
 		while ((match = regex.exec(text))) {
-			var capturingGroup = match[0].substr(0, match[0].length - 1).trim();
-			var trigger = cssTriggers.data[capturingGroup];
+			const capturingGroup = match[0].substr(0, match[0].length - 1).trim();
+			const trigger = cssTriggers.data[capturingGroup] || cssTriggers.data[camelCaseToDash(capturingGroup)];
 			if (trigger) {
 				var change = trigger.change.blink;
 				var index = match.index;
