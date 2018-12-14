@@ -1,23 +1,15 @@
-/* --------------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
-"use strict";
-
 import {
 	InitializeResult,
 	IPCMessageReader,
 	IPCMessageWriter,
 	IConnection,
 	createConnection,
-	Range,
 	TextDocuments,
 	TextDocument,
 	Position
 } from "vscode-languageserver";
 import { fetchCssTriggers } from "./liveData";
 import { SymbolResponse, CssTriggerSymbolRequestType, SymbolRequest } from "../common/protocol";
-import { request } from "https";
 
 let connection: IConnection = createConnection(new IPCMessageReader(process), new IPCMessageWriter(process));
 
@@ -63,8 +55,7 @@ function decorateCssProperties(document: TextDocument, request: SymbolRequest, c
 	for (const lineIndex of request.visibleLines) {
 		const text = lines[lineIndex];
 		var match;
-		const whiteSpace = /\s/;
-		var regex = /([\-\w])*\s*:/g;
+		var regex = /([\-a-z])+\s*:/gi;
 		while ((match = regex.exec(text))) {
 			const capturingGroup = match[0].substr(0, match[0].length - 1).trim();
 			const trigger = cssTriggers.data[capturingGroup] || cssTriggers.data[camelCaseToDash(capturingGroup)];
@@ -72,16 +63,11 @@ function decorateCssProperties(document: TextDocument, request: SymbolRequest, c
 				var change = trigger.change.blink;
 				var index = match.index;
 				var start = Position.create(lineIndex, index);
-				var whitespaceTestIndex = index - 1;
-				var previousNonWhiteSpaceChar: string;
 
-				while (
-					whitespaceTestIndex > 0 &&
-					((previousNonWhiteSpaceChar = text.charAt(whitespaceTestIndex)) && whiteSpace.test(previousNonWhiteSpaceChar))
-				) {
-					whitespaceTestIndex--;
-				}
-
+				var previousNonWhiteSpaceChar = text
+					.substr(0, match.index)
+					.trim()
+					.substr(-1);
 				if (previousNonWhiteSpaceChar == "$" || previousNonWhiteSpaceChar == "(") {
 					continue;
 				}
