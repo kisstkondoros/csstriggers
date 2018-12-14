@@ -45,14 +45,13 @@ connection.onRequest(CssTriggerSymbolRequestType, request => {
 });
 
 function decorateCssProperties(document: TextDocument, request: SymbolRequest, cssTriggers: any): SymbolResponse {
-	var supportedLanguages = ["css", "less", "sass", "scss", "html", "vue", "stylable", "stylus"];
 	var result = {
 		composite: [],
 		layout: [],
 		paint: []
 	};
 
-	if (!document || supportedLanguages.indexOf(document.languageId) == -1) {
+	if (!document) {
 		return;
 	}
 

@@ -25,14 +25,7 @@
     "Other"
   ],
   "activationEvents": [
-    "onLanguage:stylable",
-    "onLanguage:stylus",
-    "onLanguage:css",
-    "onLanguage:sass",
-    "onLanguage:scss",
-    "onLanguage:less",
-    "onLanguage:html",
-    "onLanguage:vue"
+    "*"
   ],
   "contributes": {
     "configuration": {

@@ -30,7 +30,7 @@ export function activate(context: vscode.ExtensionContext) {
 		return undefined;
 	};
 	let clientOptions: LanguageClientOptions = {
-		documentSelector: ["css", "less", "scss", "sass", "html", "vue", "stylable", "stylus"],
+		documentSelector: ["*"],
 		errorHandler: {
 			error: error,
 
@@ -78,17 +78,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 	activateColorDecorations(
 		symbolUpdater,
-		context.asAbsolutePath,
-		{
-			css: true,
-			sass: true,
-			scss: true,
-			less: true,
-			html: true,
-			vue: true,
-			stylable: true,
-			stylus: true
-		},
 		context,
 		client
 	);
