@@ -10,6 +10,7 @@ import {
 } from "vscode-languageserver";
 import { fetchCssTriggers } from "./liveData";
 import { SymbolResponse, CssTriggerSymbolRequestType, SymbolRequest } from "../common/protocol";
+import { ICssTrigger } from "./csstriggers";
 
 let connection: IConnection = createConnection(new IPCMessageReader(process), new IPCMessageWriter(process));
 
@@ -40,7 +41,7 @@ function camelCaseToDash(myStr) {
 	return myStr.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
 }
 
-function decorateCssProperties(document: TextDocument, request: SymbolRequest, cssTriggers: any): SymbolResponse {
+function decorateCssProperties(document: TextDocument, request: SymbolRequest, cssTriggers: ICssTrigger): SymbolResponse {
 	var result = {
 		composite: [],
 		layout: [],

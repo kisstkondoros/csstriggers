@@ -1,10 +1,10 @@
 import * as https from "https";
-import { cssTriggers } from "./csstriggers";
+import { cssTriggers, ICssTrigger } from "./csstriggers";
 
-export function fetchCssTriggers(): Thenable<any> {
+export function fetchCssTriggers(): Thenable<ICssTrigger> {
 	return new Promise((resolve, reject) => {
 		https
-			.get("https://raw.githubusercontent.com:443/GoogleChrome/css-triggers/master/data/blink.json", response => {
+			.get("https://raw.githubusercontent.com/GoogleChromeLabs/css-triggers/master/data/data.json", response => {
 				var body = "";
 				response.setEncoding("utf8");
 				response.on("data", function(d) {
@@ -12,13 +12,8 @@ export function fetchCssTriggers(): Thenable<any> {
 				});
 				response.on("end", function() {
 					var parsed = JSON.parse(body);
-					var triggers = { data: {} };
-					Object.keys(parsed.properties).forEach(key => {
-						if (key.endsWith("-change")) {
-							const propkey = key.substr(0, key.length - 7);
-							triggers.data[propkey] = triggers.data[propkey] || { change: { blink: {} } };
-							triggers.data[propkey].change.blink = parsed.properties[key];
-						}
+					Object.keys(parsed.data).forEach(key => {
+						cssTriggers.data[key] = parsed.data[key];
 					});
 					resolveMissingValues(cssTriggers.data);
 					resolve(cssTriggers);
