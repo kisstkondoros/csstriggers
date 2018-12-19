@@ -69,16 +69,10 @@ export function activate(context: vscode.ExtensionContext) {
 			.catch(() => {
 				console.warn("Connection was not yet ready when requesting symbols for css trigger.");
 				return {
-					composite: [],
-					layout: [],
-					paint: []
+					symbols: []
 				};
 			});
 	};
 
-	activateColorDecorations(
-		symbolUpdater,
-		context,
-		client
-	);
+	activateColorDecorations(symbolUpdater, context, client);
 }

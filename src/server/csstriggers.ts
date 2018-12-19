@@ -1,18 +1,22 @@
+export interface ICssTriggerRenderData {
+	layout: boolean;
+	paint: boolean;
+	composite: boolean;
+}
+
+export interface ICssTriggerBrowserRenderData {
+	change: {
+		[engine: string]: ICssTriggerRenderData;
+	};
+	initial: {
+		[engine: string]: ICssTriggerRenderData;
+	};
+}
+
 export interface ICssTrigger {
-  data: {
-    [name: string] : {
-      change: {
-        [name: string] : {
-          layout: boolean, paint: boolean, composite: boolean
-        }
-      }
-      initial: {
-        [name: string] : {
-          layout: boolean, paint: boolean, composite: boolean
-        }
-      }
-    }
-  }
+	data: {
+		[propertyName: string]: ICssTriggerBrowserRenderData;
+	};
 }
 export var cssTriggers: ICssTrigger = {
 	data: {

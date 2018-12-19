@@ -11,6 +11,7 @@ import {
 } from "vscode";
 import { LanguageClient } from "vscode-languageclient";
 import { Symbol, SymbolResponse } from "./common/protocol";
+import { ICssTriggerRenderData } from "./server/csstriggers";
 
 interface PendingScan {
 	token: CancellationTokenSource;
@@ -166,17 +167,45 @@ export function activateColorDecorations(
 					};
 				};
 
+				const browserData = (p: Symbol): ICssTriggerRenderData => {
+					return p.data.change.blink;
+				};
+
+				const compositeTriggers = (response: SymbolResponse) =>
+					response.symbols.filter(p => {
+						const data = browserData(p);
+						return data.composite && !data.paint && !data.layout;
+					});
+				const compositeAndPaintTriggers = (response: SymbolResponse) =>
+					response.symbols.filter(p => {
+						const data = browserData(p);
+						return data.composite && data.paint && !data.layout;
+					});
+				const compositePaintAndLayoutTriggers = (response: SymbolResponse) =>
+					response.symbols.filter(p => {
+						const data = browserData(p);
+						return data.composite && data.paint && data.layout;
+					});
+
 				if (isDecorationEnabled) {
 					setDecorationsForEditors(editors, hoveronly, []);
 
-					setDecorationsForEditors(editors, composite, symbolResponse.composite.map(s => mapper(s, "composite")));
-					setDecorationsForEditors(editors, compositeAndPaint, symbolResponse.paint.map(s => mapper(s, "paint")));
-					setDecorationsForEditors(editors, compositePaintAndLayout, symbolResponse.layout.map(s => mapper(s, "layout")));
+					setDecorationsForEditors(editors, composite, compositeTriggers(symbolResponse).map(s => mapper(s, "composite")));
+					setDecorationsForEditors(
+						editors,
+						compositeAndPaint,
+						compositeAndPaintTriggers(symbolResponse).map(s => mapper(s, "paint"))
+					);
+					setDecorationsForEditors(
+						editors,
+						compositePaintAndLayout,
+						compositePaintAndLayoutTriggers(symbolResponse).map(s => mapper(s, "layout"))
+					);
 				} else {
 					let allSymbols = [];
-					allSymbols = allSymbols.concat(symbolResponse.composite.map(s => mapper(s, "composite")));
-					allSymbols = allSymbols.concat(symbolResponse.paint.map(s => mapper(s, "paint")));
-					allSymbols = allSymbols.concat(symbolResponse.layout.map(s => mapper(s, "layout")));
+					allSymbols = allSymbols.concat(compositeTriggers(symbolResponse).map(s => mapper(s, "composite")));
+					allSymbols = allSymbols.concat(compositeAndPaintTriggers(symbolResponse).map(s => mapper(s, "paint")));
+					allSymbols = allSymbols.concat(compositePaintAndLayoutTriggers(symbolResponse).map(s => mapper(s, "layout")));
 					setDecorationsForEditors(editors, hoveronly, allSymbols);
 
 					setDecorationsForEditors(editors, composite, []);
