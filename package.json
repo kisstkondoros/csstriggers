@@ -48,7 +48,7 @@
         },
         "csstriggers.defaultEngine": {
           "default": "blink",
-          "description": "the default engine for which the decorations will be shown.",
+          "description": "The default engine for which the decorations will be shown",
           "type": "string",
           "enum": [
             "blink",
