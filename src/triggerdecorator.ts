@@ -204,11 +204,15 @@ export function activateColorDecorations(
 					const emptyLine = forcedEol + forcedEol;
 
 					const formatAsTable = (p: HoverMetadata) => {
-						const hoverMessage = //
-							`| ${p.engines.join(", ")} |${forcedEol}` + //
-							`| :--------- |${forcedEol}` + //
-							`| ![${p.titleAndCaption}](${p.path} '${p.titleAndCaption}') |${forcedEol}` + //
-							`| ${p.explanation} | ${emptyLine}`; //;
+						let hoverMessage;
+						if (showLegend) {
+							hoverMessage = //
+								`| ![${p.titleAndCaption}](${p.path} '${p.titleAndCaption}') ${p.engines.join(", ")} |${forcedEol}` + //
+								`| :--------- |${forcedEol}` + //
+								`| ${p.explanation} | ${emptyLine}`; //;
+						} else {
+							hoverMessage = `![${p.titleAndCaption}](${p.path} '${p.titleAndCaption}') ${p.engines.join(", ")} ${emptyLine}`;
+						}
 						return hoverMessage;
 					};
 
@@ -216,6 +220,7 @@ export function activateColorDecorations(
 					let showExtendedInformation: boolean = workspace
 						.getConfiguration("csstriggers")
 						.get<boolean>("showExtendedInformation", false);
+					let showLegend: boolean = workspace.getConfiguration("csstriggers").get<boolean>("showLegend", true);
 
 					if (showExtendedInformation) {
 						hoverMessage += "*Change from default*" + emptyLine;
@@ -233,9 +238,8 @@ export function activateColorDecorations(
 						hoverMessage =
 							getHoverData({ [defaultEngine]: symbol.data.change[defaultEngine] })
 								.map(p => {
-									const hoverMessage = `![${p.titleAndCaption}](${p.path} '${
-										p.titleAndCaption
-									}')${forcedEol}${p.explanation.replace(/\r\n/g, "")}${emptyLine}`;
+									const explanation = showLegend ? `${forcedEol}${p.explanation.replace(/\r\n/g, "")}` : "";
+									const hoverMessage = `![${p.titleAndCaption}](${p.path} '${p.titleAndCaption}')${explanation}${emptyLine}`;
 									return hoverMessage;
 								})
 								.join("") + forcedEol;

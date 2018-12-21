@@ -41,6 +41,11 @@
           "description": "A flag which indicates whether to show extended information about the given css property",
           "type": "boolean"
         },
+        "csstriggers.showLegend": {
+          "default": false,
+          "description": "A flag which indicates whether to show the legend for a given css trigger",
+          "type": "boolean"
+        },
         "csstriggers.defaultEngine": {
           "default": "blink",
           "description": "the default engine for which the decorations will be shown.",
