@@ -4,13 +4,13 @@ export interface ICssTriggerRenderData {
 	composite: boolean;
 }
 
+export interface ICssTriggerRenderPhaseData {
+	[engine: string]: ICssTriggerRenderData;
+}
+
 export interface ICssTriggerBrowserRenderData {
-	change: {
-		[engine: string]: ICssTriggerRenderData;
-	};
-	initial: {
-		[engine: string]: ICssTriggerRenderData;
-	};
+	change: ICssTriggerRenderPhaseData;
+	initial: ICssTriggerRenderPhaseData;
 }
 
 export interface ICssTrigger {

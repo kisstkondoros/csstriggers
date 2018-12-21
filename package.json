@@ -35,6 +35,22 @@
           "default": true,
           "description": "A flag which indicates whether to show cost indicator decorations",
           "type": "boolean"
+        },
+        "csstriggers.showExtendedInformation": {
+          "default": false,
+          "description": "A flag which indicates whether to show extended information about the given css property",
+          "type": "boolean"
+        },
+        "csstriggers.defaultEngine": {
+          "default": "blink",
+          "description": "the default engine for which the decorations will be shown.",
+          "type": "string",
+          "enum": [
+            "blink",
+            "gecko",
+            "webkit",
+            "edgehtml"
+          ]
         }
       }
     }
