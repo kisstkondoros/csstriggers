@@ -38,20 +38,40 @@ export function activateColorDecorations(
 	const compositeAndPaintImagePathSmall = context.asAbsolutePath("images/paint.svg");
 	const compositePaintAndLayoutImagePathSmall = context.asAbsolutePath("images/layout.svg");
 	const validEngines = ["blink", "gecko", "webkit", "edgehtml"];
-	var hoveronly = window.createTextEditorDecorationType({});
-	var composite = window.createTextEditorDecorationType({
+	const hoveronly = window.createTextEditorDecorationType({});
+	const composite = window.createTextEditorDecorationType({
 		gutterIconPath: compositeImagePathSmall
 	});
-	var compositeAndPaint = window.createTextEditorDecorationType({
+	const compositeAndPaint = window.createTextEditorDecorationType({
 		gutterIconPath: compositeAndPaintImagePathSmall
 	});
-	var compositePaintAndLayout = window.createTextEditorDecorationType({
+	const compositePaintAndLayout = window.createTextEditorDecorationType({
 		gutterIconPath: compositePaintAndLayoutImagePathSmall
 	});
 
 	context.subscriptions.push(composite);
 	context.subscriptions.push(compositeAndPaint);
 	context.subscriptions.push(compositePaintAndLayout);
+
+	const compositeInline = window.createTextEditorDecorationType({
+		before: {
+			contentIconPath: compositeImagePathSmall
+		}
+	});
+	const compositeAndPaintInline = window.createTextEditorDecorationType({
+		before: {
+			contentIconPath: compositeAndPaintImagePathSmall
+		}
+	});
+	const compositePaintAndLayoutInline = window.createTextEditorDecorationType({
+		before: {
+			contentIconPath: compositePaintAndLayoutImagePathSmall
+		}
+	});
+
+	context.subscriptions.push(compositeInline);
+	context.subscriptions.push(compositeAndPaintInline);
+	context.subscriptions.push(compositePaintAndLayoutInline);
 
 	context.subscriptions.push(
 		workspace.onDidChangeTextDocument(e => {
@@ -132,6 +152,7 @@ export function activateColorDecorations(
 			}
 
 			let isDecorationEnabled = workspace.getConfiguration("csstriggers").get<boolean>("showDecoration", true) == true;
+			let isDecorationInline = workspace.getConfiguration("csstriggers").get<boolean>("showDecorationInline", false) == true;
 
 			const scanResult = getPendingScan(document);
 			scanResult.token.cancel();
@@ -271,16 +292,36 @@ export function activateColorDecorations(
 
 				if (isDecorationEnabled) {
 					setDecorationsForEditors(editors, hoveronly, []);
+					let compositeDecoration: TextEditorDecorationType;
+					let compositeAndPaintDecoration: TextEditorDecorationType;
+					let compositePaintAndLayoutDecoration: TextEditorDecorationType;
+					if (isDecorationInline) {
+						compositeDecoration = compositeInline;
+						compositeAndPaintDecoration = compositeAndPaintInline;
+						compositePaintAndLayoutDecoration = compositePaintAndLayoutInline;
 
-					setDecorationsForEditors(editors, composite, compositeTriggers(symbolResponse).map(s => mapper(s)));
+						setDecorationsForEditors(editors, composite, []);
+						setDecorationsForEditors(editors, compositeAndPaint, []);
+						setDecorationsForEditors(editors, compositePaintAndLayout, []);
+					} else {
+						compositeDecoration = composite;
+						compositeAndPaintDecoration = compositeAndPaint;
+						compositePaintAndLayoutDecoration = compositePaintAndLayout;
+
+						setDecorationsForEditors(editors, compositeInline, []);
+						setDecorationsForEditors(editors, compositeAndPaintInline, []);
+						setDecorationsForEditors(editors, compositePaintAndLayoutInline, []);
+					}
+
+					setDecorationsForEditors(editors, compositeDecoration, compositeTriggers(symbolResponse).map(s => mapper(s)));
 					setDecorationsForEditors(
 						editors,
-						compositeAndPaint,
+						compositeAndPaintDecoration,
 						compositeAndPaintTriggers(symbolResponse).map(s => mapper(s))
 					);
 					setDecorationsForEditors(
 						editors,
-						compositePaintAndLayout,
+						compositePaintAndLayoutDecoration,
 						compositePaintAndLayoutTriggers(symbolResponse).map(s => mapper(s))
 					);
 				} else {
@@ -293,12 +334,20 @@ export function activateColorDecorations(
 					setDecorationsForEditors(editors, composite, []);
 					setDecorationsForEditors(editors, compositeAndPaint, []);
 					setDecorationsForEditors(editors, compositePaintAndLayout, []);
+
+					setDecorationsForEditors(editors, compositeInline, []);
+					setDecorationsForEditors(editors, compositeAndPaintInline, []);
+					setDecorationsForEditors(editors, compositePaintAndLayoutInline, []);
 				}
 			});
 		} else {
 			setDecorationsForEditors(editors, composite, []);
 			setDecorationsForEditors(editors, compositeAndPaint, []);
 			setDecorationsForEditors(editors, compositePaintAndLayout, []);
+
+			setDecorationsForEditors(editors, compositeInline, []);
+			setDecorationsForEditors(editors, compositeAndPaintInline, []);
+			setDecorationsForEditors(editors, compositePaintAndLayoutInline, []);
 		}
 	}
 

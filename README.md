@@ -3,12 +3,15 @@
 A VSCode extension which adds inline decoration to css properties to indicate their costs.
 
 ## It looks like this:
+
 ![Example code with references code lens](https://raw.githubusercontent.com/kisstkondoros/csstriggers/master/screenshot.png)
 
 ## Configuration properties
 
 - `csstriggers.showDecoration`
   - A flag which indicates whether to show cost indicator decorations
+- `csstriggers.showDecorationInline`
+  - A flag which indicates whether to show cost indicator decorations inline
 - `csstriggers.showExtendedInformation`
   - A flag which indicates whether to show extended information about the given css property
 - `csstriggers.showLegend`
@@ -17,4 +20,5 @@ A VSCode extension which adds inline decoration to css properties to indicate th
   - The default engine for which the decorations will be shown
 
 ## Credits
+
 The extension depends on [css-triggers](https://csstriggers.com/) which was made by [Paul](https://twitter.com/aerotwist) and [Surma](https://twitter.com/DasSurma)
