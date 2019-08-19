@@ -47,7 +47,7 @@
           "type": "boolean"
         },
         "csstriggers.showLegend": {
-          "default": false,
+          "default": true,
           "description": "A flag which indicates whether to show the legend for a given css trigger",
           "type": "boolean"
         },
