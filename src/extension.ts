@@ -16,7 +16,7 @@ import { activateColorDecorations } from "./triggerdecorator";
 import { SymbolResponse, CssTriggerSymbolRequestType } from "./common/protocol";
 
 export function activate(context: vscode.ExtensionContext) {
-	let serverModule = context.asAbsolutePath(path.join("out", "src", "server", "server.js"));
+	let serverModule = context.asAbsolutePath(path.join('dist', 'server.js'));
 
 	let debugOptions = { execArgv: ["--nolazy", "--inspect=6004"] };
 
