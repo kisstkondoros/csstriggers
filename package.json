@@ -12,7 +12,7 @@
     "url": "https://github.com/kisstkondoros/csstriggers.git"
   },
   "engines": {
-    "vscode": "^1.37.0"
+    "vscode": "^1.40.0"
   },
   "keywords": [
     "css",
@@ -73,14 +73,13 @@
     "webpack-dev": "webpack --mode development --watch"
   },
   "devDependencies": {
-    "@types/node": "^12.6.8",
-    "@types/vscode": "^1.37.0",
-    "typescript": "^3.5.3",
-    "vscode": "^1.1.35",
-    "ts-loader": "^6.0.4",
-    "tsconfig-paths": "^3.8.0",
-    "webpack": "^4.36.1",
-    "webpack-cli": "^3.3.6"
+    "@types/node": "^12.12.14",
+    "@types/vscode": "^1.40.0",
+    "ts-loader": "^6.2.1",
+    "tsconfig-paths": "^3.9.0",
+    "typescript": "^3.7.3",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10"
   },
   "dependencies": {
     "vscode-languageclient": "5.3.0-next.6",
