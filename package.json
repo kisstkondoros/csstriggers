@@ -12,7 +12,7 @@
     "url": "https://github.com/kisstkondoros/csstriggers.git"
   },
   "engines": {
-    "vscode": "^1.40.0"
+    "vscode": "^1.45.1"
   },
   "keywords": [
     "css",
