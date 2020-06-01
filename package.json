@@ -31,6 +31,66 @@
     "configuration": {
       "title": "CSSTriggers",
       "properties": {
+        "csstriggers.decorationInactivePhaseColor": {
+          "default": "#828282",
+          "type": "string",
+          "description": "SVG template variable, used as the fill color for inactive phases (hover)"
+        },
+        "csstriggers.decorationCompositeColor": {
+          "default": "#38ba41",
+          "type": "string",
+          "description": "SVG template variable, used for the composite phase color"
+        },
+        "csstriggers.decorationLayoutColor": {
+          "default": "#fb256c",
+          "type": "string",
+          "description": "SVG template variable, used for the layout phase color"
+        },
+        "csstriggers.decorationPaintColor": {
+          "default": "#fbdb25",
+          "type": "string",
+          "description": "SVG template variable, used for the paint phase color"
+        },
+        "csstriggers.decorationStrokeColor": {
+          "default": "transparent",
+          "type": "string",
+          "description": "SVG template variable, used for the stroke"
+        },
+        "csstriggers.decorationStrokeWidth": {
+          "default": "2px",
+          "type": "string",
+          "description": "SVG template variable, used for the width of the stroke"
+        },
+        "csstriggers.compositeImage": {
+          "default": "<svg xmlns=\"http://www.w3.org/2000/svg\" style=\"isolation:isolate\" width=\"60\" height=\"16\"><defs><clipPath id=\"a\"><path d=\"M0 0h60v16H0z\"/></clipPath></defs><g clip-path=\"url(#a)\"><path d=\"M9 8L4 3.5h47L56 8l-5 4.5H4L9 8z\" fill=\"{{stroke}}\" vector-effect=\"non-scaling-stroke\" stroke=\"{{stroke}}\"/><path d=\"M9 8L4 3.5h15L24 8l-5 4.5H4L9 8z\" fill=\"{{inactivePhaseColor}}\"/><path d=\"M25 8l-5-4.5h15L40 8l-5 4.5H20L25 8z\" fill=\"{{inactivePhaseColor}}\"/><path d=\"M41 8l-5-4.5h15L56 8l-5 4.5H36L41 8z\" fill=\"{{compositeColor}}\"/></g></svg>",
+          "type": "string",
+          "description": "SVG template string for composite phase decoration (hover)"
+        },
+        "csstriggers.compositeAndPaintImage": {
+          "default": "<svg xmlns=\"http://www.w3.org/2000/svg\" style=\"isolation:isolate\" width=\"60\" height=\"16\"><defs><clipPath id=\"a\"><path d=\"M0 0h60v16H0z\"/></clipPath></defs><g clip-path=\"url(#a)\"><path d=\"M9 8L4 3.5h47L56 8l-5 4.5H4L9 8z\" fill=\"{{stroke}}\" vector-effect=\"non-scaling-stroke\" stroke=\"{{stroke}}\"/><path d=\"M9 8L4 3.5h15L24 8l-5 4.5H4L9 8z\" fill=\"{{inactivePhaseColor}}\"/><path d=\"M25 8l-5-4.5h15L40 8l-5 4.5H20L25 8z\" fill=\"{{paintColor}}\"/><path d=\"M41 8l-5-4.5h15L56 8l-5 4.5H36L41 8z\" fill=\"{{compositeColor}}\"/></g></svg>",
+          "type": "string",
+          "description": "SVG template string for composite and paint phase decoration (hover)"
+        },
+        "csstriggers.compositePaintAndLayoutImage": {
+          "default": "<svg xmlns=\"http://www.w3.org/2000/svg\" style=\"isolation:isolate\" width=\"{{60}}\" height=\"16\"><defs><clipPath id=\"a\"><path d=\"M0 0h60v16H0z\"/></clipPath></defs><g clip-path=\"url(#a)\"><path d=\"M9 8L4 3.5h47L56 8l-5 4.5H4L9 8z\" fill=\"{{stroke}}\" vector-effect=\"non-scaling-stroke\" stroke=\"{{stroke}}\"/><path d=\"M9 8L4 3.5h15L24 8l-5 4.5H4L9 8z\" fill=\"{{layoutColor}}\"/><path d=\"M25 8l-5-4.5h15L40 8l-5 4.5H20L25 8z\" fill=\"{{paintColor}}\"/><path d=\"M41 8l-5-4.5h15L56 8l-5 4.5H36L41 8z\" fill=\"{{compositeColor}}\"/></g></svg>",
+          "type": "string",
+          "description": "SVG template string for composite, paint and layout phase decoration (hover)"
+        },
+        "csstriggers.compositeImageSmall": {
+          "default": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\"><path id=\"outline\" d=\"M4 12 L8 12 L12 8 L8 4 L4 4 L8 8 Z\" fill=\"transparent\" stroke=\"{{stroke}}\" stroke-width=\"{{strokeWidth}}\" class=\"icon-outline\"/><path id=\"canvas\" d=\"M4 12 L8 12 L12 8 L8 4 L4 4 L8 8 Z\" fill=\"{{compositeColor}}\" class=\"icon-canvas\"/></svg>",
+          "type": "string",
+          "description": "SVG template string for composite phase decoration (inline)"
+        },
+        "csstriggers.compositeAndPaintImageSmall": {
+          "default": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\"><path id=\"outline\" d=\"M4 12 L8 12 L12 8 L8 4 L4 4 L8 8 Z\" fill=\"transparent\" stroke=\"{{stroke}}\"  stroke-width=\"{{strokeWidth}}\" class=\"icon-outline\"/><path id=\"canvas\" d=\"M4 12 L8 12 L12 8 L8 4 L4 4 L8 8 Z\" fill=\"{{paintColor}}\" class=\"icon-canvas\"/></svg>",
+          "type": "string",
+          "description": "SVG template string for composite and paint phase decoration (inline)"
+        },
+        "csstriggers.compositePaintAndLayoutImageSmall": {
+          "default": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\"><path id=\"outline\" d=\"M4 12 L8 12 L12 8 L8 4 L4 4 L8 8 Z\" fill=\"transparent\" stroke=\"{{stroke}}\"  stroke-width=\"{{strokeWidth}}\" class=\"icon-outline\"/><path id=\"canvas\" d=\"M4 12 L8 12 L12 8 L8 4 L4 4 L8 8 Z\" fill=\"{{layoutColor}}\" class=\"icon-canvas\"/></svg>",
+          "type": "string",
+          "description": "SVG template string for composite, paint and layout phase decoration (inline)"
+        },
         "csstriggers.showDecorationInline": {
           "default": false,
           "description": "A flag which indicates whether to show cost indicator decorations inline",

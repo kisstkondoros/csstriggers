@@ -14,5 +14,4 @@ testfiles
 node_modules
 .devcontainer
 webpack.config.js
-!images
 !dist

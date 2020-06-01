@@ -8,6 +8,8 @@ import {
   CancellationTokenSource,
   ExtensionContext,
   TextEditorDecorationType,
+  Disposable,
+  Uri,
 } from "vscode";
 import { LanguageClient } from "vscode-languageclient";
 import { Symbol, SymbolResponse } from "./common/protocol";
@@ -21,10 +23,54 @@ interface PendingScan {
 }
 interface HoverMetadata {
   engines: string[];
-  path: string;
+  uri: Uri;
   explanation: string;
   titleAndCaption: string;
 }
+
+class RenewableTextEditorDecorationType implements Disposable {
+  current: TextEditorDecorationType;
+  constructor(
+    private create: () => TextEditorDecorationType,
+    private teardown: (type: TextEditorDecorationType) => void
+  ) {
+    this.current = create();
+  }
+
+  renew() {
+    this.teardown(this.current);
+    this.current = this.create();
+  }
+
+  dispose() {
+    if (this.current) {
+      this.current.dispose();
+      this.current = null;
+    }
+  }
+}
+
+function processSVGTemplate(
+  templateString: string,
+  templateVariables: Record<string, string>
+): Uri {
+  const decoration = templateString.replace(
+    /\{\{(.+?)\}\}/g,
+    (match, varName) => templateVariables[varName]
+  );
+  return Uri.parse(
+    `data:image/svg+xml;base64,` + Buffer.from(decoration).toString("base64")
+  );
+}
+
+function generateSVGFromSettings(
+  settingsKey: string,
+  variables: Record<string, string>
+) {
+  const config = workspace.getConfiguration("csstriggers");
+  return processSVGTemplate(config.get(settingsKey), variables);
+}
+
 export function activateColorDecorations(
   decoratorProvider: (
     document: TextDocument,
@@ -34,59 +80,126 @@ export function activateColorDecorations(
   context: ExtensionContext,
   client: LanguageClient
 ) {
-  const compositeImagePath = context.asAbsolutePath(
-    "images/composite_wide.svg"
-  );
-  const compositeAndPaintImagePath = context.asAbsolutePath(
-    "images/composite_paint_wide.svg"
-  );
-  const compositePaintAndLayoutImagePath = context.asAbsolutePath(
-    "images/composite_paint_layout_wide.svg"
-  );
-  const compositeImagePathSmall = context.asAbsolutePath(
-    "images/composite.svg"
-  );
-  const compositeAndPaintImagePathSmall = context.asAbsolutePath(
-    "images/paint.svg"
-  );
-  const compositePaintAndLayoutImagePathSmall = context.asAbsolutePath(
-    "images/layout.svg"
-  );
   const validEngines = ["blink", "gecko", "webkit", "edgehtml"];
+
+  const templateVariables: Record<string, string> = {};
+
+  const loadTemplateVariables = () => {
+    const config = workspace.getConfiguration("csstriggers");
+    templateVariables.inactivePhaseColor = config.get(
+      "decorationInactivePhaseColor"
+    );
+    templateVariables.compositeColor = config.get("decorationCompositeColor");
+    templateVariables.layoutColor = config.get("decorationLayoutColor");
+    templateVariables.paintColor = config.get("decorationPaintColor");
+    templateVariables.stroke = config.get("decorationStrokeColor");
+    templateVariables.strokeWidth = config.get("decorationStrokeWidth");
+  };
+
+  loadTemplateVariables();
+
   const hoveronly = window.createTextEditorDecorationType({});
-  const composite = window.createTextEditorDecorationType({
-    gutterIconPath: compositeImagePathSmall,
-  });
-  const compositeAndPaint = window.createTextEditorDecorationType({
-    gutterIconPath: compositeAndPaintImagePathSmall,
-  });
-  const compositePaintAndLayout = window.createTextEditorDecorationType({
-    gutterIconPath: compositePaintAndLayoutImagePathSmall,
-  });
+
+  const composite = new RenewableTextEditorDecorationType(
+    () => {
+      return window.createTextEditorDecorationType({
+        gutterIconSize: "0.7em",
+        gutterIconPath: generateSVGFromSettings(
+          "compositeImageSmall",
+          templateVariables
+        ),
+      });
+    },
+    (type) => clearDecorationFromEditors(type)
+  );
+  const compositeAndPaint = new RenewableTextEditorDecorationType(
+    () => {
+      return window.createTextEditorDecorationType({
+        gutterIconSize: "0.7em",
+        gutterIconPath: generateSVGFromSettings(
+          "compositeAndPaintImageSmall",
+          templateVariables
+        ),
+      });
+    },
+    (type) => clearDecorationFromEditors(type)
+  );
+  const compositePaintAndLayout = new RenewableTextEditorDecorationType(
+    () => {
+      return window.createTextEditorDecorationType({
+        gutterIconSize: "0.7em",
+        gutterIconPath: generateSVGFromSettings(
+          "compositePaintAndLayoutImageSmall",
+          templateVariables
+        ),
+      });
+    },
+    (type) => clearDecorationFromEditors(type)
+  );
 
   context.subscriptions.push(composite);
   context.subscriptions.push(compositeAndPaint);
   context.subscriptions.push(compositePaintAndLayout);
 
-  const compositeInline = window.createTextEditorDecorationType({
-    before: {
-      contentIconPath: compositeImagePathSmall,
+  const compositeInline = new RenewableTextEditorDecorationType(
+    () => {
+      return window.createTextEditorDecorationType({
+        before: {
+          width: "0.7em",
+          contentIconPath: generateSVGFromSettings(
+            "compositeImageSmall",
+            templateVariables
+          ),
+        },
+      });
     },
-  });
-  const compositeAndPaintInline = window.createTextEditorDecorationType({
-    before: {
-      contentIconPath: compositeAndPaintImagePathSmall,
+    (type) => clearDecorationFromEditors(type)
+  );
+  const compositeAndPaintInline = new RenewableTextEditorDecorationType(
+    () => {
+      return window.createTextEditorDecorationType({
+        before: {
+          width: "0.7em",
+          contentIconPath: generateSVGFromSettings(
+            "compositeAndPaintImageSmall",
+            templateVariables
+          ),
+        },
+      });
     },
-  });
-  const compositePaintAndLayoutInline = window.createTextEditorDecorationType({
-    before: {
-      contentIconPath: compositePaintAndLayoutImagePathSmall,
+    (type) => clearDecorationFromEditors(type)
+  );
+  const compositePaintAndLayoutInline = new RenewableTextEditorDecorationType(
+    () => {
+      return window.createTextEditorDecorationType({
+        before: {
+          width: "0.7em",
+          contentIconPath: generateSVGFromSettings(
+            "compositePaintAndLayoutImageSmall",
+            templateVariables
+          ),
+        },
+      });
     },
-  });
+    (type) => clearDecorationFromEditors(type)
+  );
 
   context.subscriptions.push(compositeInline);
   context.subscriptions.push(compositeAndPaintInline);
   context.subscriptions.push(compositePaintAndLayoutInline);
+
+  context.subscriptions.push(
+    workspace.onDidChangeConfiguration(() => {
+      loadTemplateVariables();
+      composite.renew();
+      compositeAndPaint.renew();
+      compositePaintAndLayout.renew();
+      compositeInline.renew();
+      compositeAndPaintInline.renew();
+      compositePaintAndLayoutInline.renew();
+      refreshAllVisibleEditors();
+    })
+  );
 
   context.subscriptions.push(
     workspace.onDidChangeTextDocument((e) => {
@@ -142,6 +255,10 @@ export function activateColorDecorations(
       .map((p) => p.document)
       .filter((p) => p != null)
       .forEach((doc) => throttledScan(doc));
+  };
+
+  const clearDecorationFromEditors = (type: TextEditorDecorationType) => {
+    setDecorationsForEditors(window.visibleTextEditors, type, []);
   };
 
   function getPendingScan(document: TextDocument): PendingScan {
@@ -210,24 +327,33 @@ export function activateColorDecorations(
                 if (["composite", "layout", "paint"].indexOf(type) == -1)
                   continue;
 
-                let path: string;
+                let uri: Uri;
                 let explanation: string;
                 let titleAndCaption: string = type;
 
                 switch (type) {
                   case "composite": {
-                    path = compositeImagePath;
+                    uri = generateSVGFromSettings(
+                      "compositeImage",
+                      templateVariables
+                    );
                     explanation = "Will result only in `compositing`.";
                     break;
                   }
                   case "paint": {
-                    path = compositeAndPaintImagePath;
+                    uri = generateSVGFromSettings(
+                      "compositeAndPaintImage",
+                      templateVariables
+                    );
                     explanation =
                       "The affected element will be `painted` and `composited`.";
                     break;
                   }
                   case "layout": {
-                    path = compositePaintAndLayoutImagePath;
+                    uri = generateSVGFromSettings(
+                      "compositePaintAndLayoutImage",
+                      templateVariables
+                    );
                     explanation =
                       "Any affected areas will need to be `layouted`, and the" +
                       forcedEol + //
@@ -238,16 +364,12 @@ export function activateColorDecorations(
                   }
                 }
 
-                // The markdown path parser under windows escapes the `userhome\.vscode` folder as `userhome.vscode`
-                if (process.platform === "win32") {
-                  path = path.replace("\\.", "\\\\.");
-                }
                 if (buckets[type].length) {
                   const engines = buckets[type];
                   hoverData.push({
                     engines,
                     titleAndCaption,
-                    path,
+                    uri,
                     explanation,
                   });
                 }
@@ -262,15 +384,17 @@ export function activateColorDecorations(
               let hoverMessage;
               if (showLegend) {
                 hoverMessage = //
-                  `| ![${p.titleAndCaption}](${p.path} '${
+                  `| ![${p.titleAndCaption}](${p.uri.toString(true)} '${
                     p.titleAndCaption
                   }') ${p.engines.join(", ")} |${forcedEol}` + //
                   `| :--------- |${forcedEol}` + //
                   `| ${p.explanation} | ${emptyLine}`; //;
               } else {
-                hoverMessage = `![${p.titleAndCaption}](${p.path} '${
-                  p.titleAndCaption
-                }') ${p.engines.join(", ")} ${emptyLine}`;
+                hoverMessage = `![${p.titleAndCaption}](${p.uri.toString(
+                  true
+                )} '${p.titleAndCaption}') ${p.engines.join(
+                  ", "
+                )} ${emptyLine}`;
               }
               return hoverMessage;
             };
@@ -304,7 +428,11 @@ export function activateColorDecorations(
                     const explanation = showLegend
                       ? `${forcedEol}${p.explanation.replace(/\r\n/g, "")}`
                       : "";
-                    const hoverMessage = `![${p.titleAndCaption}](${p.path} '${p.titleAndCaption}')${explanation}${emptyLine}`;
+                    const hoverMessage = `![${
+                      p.titleAndCaption
+                    }](${p.uri.toString(true)} '${
+                      p.titleAndCaption
+                    }')${explanation}${emptyLine}`;
                     return hoverMessage;
                   })
                   .join("") + forcedEol;
@@ -348,23 +476,33 @@ export function activateColorDecorations(
             let compositeAndPaintDecoration: TextEditorDecorationType;
             let compositePaintAndLayoutDecoration: TextEditorDecorationType;
             if (isDecorationInline) {
-              compositeDecoration = compositeInline;
-              compositeAndPaintDecoration = compositeAndPaintInline;
-              compositePaintAndLayoutDecoration = compositePaintAndLayoutInline;
+              compositeDecoration = compositeInline.current;
+              compositeAndPaintDecoration = compositeAndPaintInline.current;
+              compositePaintAndLayoutDecoration =
+                compositePaintAndLayoutInline.current;
 
-              setDecorationsForEditors(editors, composite, []);
-              setDecorationsForEditors(editors, compositeAndPaint, []);
-              setDecorationsForEditors(editors, compositePaintAndLayout, []);
-            } else {
-              compositeDecoration = composite;
-              compositeAndPaintDecoration = compositeAndPaint;
-              compositePaintAndLayoutDecoration = compositePaintAndLayout;
-
-              setDecorationsForEditors(editors, compositeInline, []);
-              setDecorationsForEditors(editors, compositeAndPaintInline, []);
+              setDecorationsForEditors(editors, composite.current, []);
+              setDecorationsForEditors(editors, compositeAndPaint.current, []);
               setDecorationsForEditors(
                 editors,
-                compositePaintAndLayoutInline,
+                compositePaintAndLayout.current,
+                []
+              );
+            } else {
+              compositeDecoration = composite.current;
+              compositeAndPaintDecoration = compositeAndPaint.current;
+              compositePaintAndLayoutDecoration =
+                compositePaintAndLayout.current;
+
+              setDecorationsForEditors(editors, compositeInline.current, []);
+              setDecorationsForEditors(
+                editors,
+                compositeAndPaintInline.current,
+                []
+              );
+              setDecorationsForEditors(
+                editors,
+                compositePaintAndLayoutInline.current,
                 []
               );
             }
@@ -401,28 +539,40 @@ export function activateColorDecorations(
             );
             setDecorationsForEditors(editors, hoveronly, allSymbols);
 
-            setDecorationsForEditors(editors, composite, []);
-            setDecorationsForEditors(editors, compositeAndPaint, []);
-            setDecorationsForEditors(editors, compositePaintAndLayout, []);
-
-            setDecorationsForEditors(editors, compositeInline, []);
-            setDecorationsForEditors(editors, compositeAndPaintInline, []);
+            setDecorationsForEditors(editors, composite.current, []);
+            setDecorationsForEditors(editors, compositeAndPaint.current, []);
             setDecorationsForEditors(
               editors,
-              compositePaintAndLayoutInline,
+              compositePaintAndLayout.current,
+              []
+            );
+
+            setDecorationsForEditors(editors, compositeInline.current, []);
+            setDecorationsForEditors(
+              editors,
+              compositeAndPaintInline.current,
+              []
+            );
+            setDecorationsForEditors(
+              editors,
+              compositePaintAndLayoutInline.current,
               []
             );
           }
         }
       );
     } else {
-      setDecorationsForEditors(editors, composite, []);
-      setDecorationsForEditors(editors, compositeAndPaint, []);
-      setDecorationsForEditors(editors, compositePaintAndLayout, []);
+      setDecorationsForEditors(editors, composite.current, []);
+      setDecorationsForEditors(editors, compositeAndPaint.current, []);
+      setDecorationsForEditors(editors, compositePaintAndLayout.current, []);
 
-      setDecorationsForEditors(editors, compositeInline, []);
-      setDecorationsForEditors(editors, compositeAndPaintInline, []);
-      setDecorationsForEditors(editors, compositePaintAndLayoutInline, []);
+      setDecorationsForEditors(editors, compositeInline.current, []);
+      setDecorationsForEditors(editors, compositeAndPaintInline.current, []);
+      setDecorationsForEditors(
+        editors,
+        compositePaintAndLayoutInline.current,
+        []
+      );
     }
   }
 
