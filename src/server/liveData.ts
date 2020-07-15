@@ -33,7 +33,7 @@ function resolveMissingValues(data) {
 	data["border"] = data["border-left-width"];
 	data["border-block"] = data["border-top-width"];
 	data["border-block-color"] = data["border-top-color"];
-	data["border-block-end"] = data["border-bottom-end"];
+	data["border-block-end"] = data["border-bottom-width"];
 	data["border-block-end-color"] = data["border-bottom-color"];
 	data["border-block-end-style"] = data["border-bottom-style"];
 	data["border-block-end-width"] = data["border-bottom-width"];
@@ -46,7 +46,7 @@ function resolveMissingValues(data) {
 	data["border-color"] = data["border-left-color"];
 	data["border-inline"] = data["border-left-width"];
 	data["border-inline-color"] = data["border-left-color"];
-	data["border-inline-end"] = data["border-right-end"];
+	data["border-inline-end"] = data["border-right-width"];
 	data["border-inline-end-color"] = data["border-right-color"];
 	data["border-inline-end-style"] = data["border-right-style"];
 	data["border-inline-end-width"] = data["border-right-width"];
@@ -63,7 +63,7 @@ function resolveMissingValues(data) {
 	data["border-end-end-radius"] = data["border"];
 	data["border-style"] = data["border-left-style"];
 	data["border-width"] = data["border-left-width"];
-	data["inline-size "] = data["height"];
+	data["inline-size"] = data["height"];
 	data["inset"] = data["top"];
 	data["inset-block"] = data["top"];
 	data["inset-block-end"] = data["bottom"];
