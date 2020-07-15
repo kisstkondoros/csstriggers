@@ -22,3 +22,8 @@ A VSCode extension which adds inline decoration to css properties to indicate th
 ## Credits
 
 The extension depends on [css-triggers](https://csstriggers.com/) which was made by [Paul](https://twitter.com/aerotwist) and [Surma](https://twitter.com/DasSurma)
+
+## Contributions
+
+- Add support for logical properties and values - by @ahmadalfy
+- Improved UX and Windows support - by @hammster
