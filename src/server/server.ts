@@ -1,13 +1,11 @@
 import {
   InitializeResult,
-  IPCMessageReader,
-  IPCMessageWriter,
-  IConnection,
   createConnection,
   TextDocuments,
   Position,
   TextDocumentSyncKind,
-} from "vscode-languageserver";
+  ProposedFeatures,
+} from "vscode-languageserver/node";
 import { fetchCssTriggers } from "./liveData";
 import {
   SymbolResponse,
@@ -18,10 +16,7 @@ import { ICssTrigger } from "./csstriggers";
 
 import { TextDocument } from "vscode-languageserver-textdocument";
 
-let connection: IConnection = createConnection(
-  new IPCMessageReader(process),
-  new IPCMessageWriter(process)
-);
+let connection = createConnection(ProposedFeatures.all);
 
 let cssTriggersPromise = fetchCssTriggers();
 
@@ -31,15 +26,13 @@ console.error = connection.console.error.bind(connection.console);
 let documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 documents.listen(connection);
 
-connection.onInitialize(
-  (): InitializeResult => {
-    return {
-      capabilities: {
-        textDocumentSync: TextDocumentSyncKind.Full,
-      },
-    };
-  }
-);
+connection.onInitialize((): InitializeResult => {
+  return {
+    capabilities: {
+      textDocumentSync: TextDocumentSyncKind.Full,
+    },
+  };
+});
 
 connection.onRequest(CssTriggerSymbolRequestType, (request) => {
   let document = documents.get(request.uri);

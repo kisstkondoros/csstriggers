@@ -11,7 +11,7 @@ import {
   Disposable,
   Uri,
 } from "vscode";
-import { LanguageClient } from "vscode-languageclient";
+import { LanguageClient } from "vscode-languageclient/node";
 import { Symbol, SymbolResponse } from "./common/protocol";
 import {
   ICssTriggerRenderData,
@@ -580,7 +580,7 @@ export function activateColorDecorations(
 }
 
 function setDecorationsForEditors(
-  editors: TextEditor[],
+  editors: readonly TextEditor[],
   type: TextEditorDecorationType,
   options: DecorationOptions[]
 ) {
